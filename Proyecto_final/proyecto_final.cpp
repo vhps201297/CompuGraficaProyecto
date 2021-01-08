@@ -395,7 +395,7 @@ int main()
 		staticShader.setFloat("pointLight[0].quadratic", 0.032f);
 
 		staticShader.setVec3("pointLight[1].position", glm::vec3(0.0, 0.0f, 0.0f));
-		staticShader.setVec3("pointLight[1].ambient", glm::vec3(1.0f, 1.0f, 1.0f));
+		staticShader.setVec3("pointLight[1].ambient", glm::vec3(0.0f, 0.0f, 0.0f));
 		staticShader.setVec3("pointLight[1].diffuse", glm::vec3(0.0f, 0.0f, 0.0f));
 		staticShader.setVec3("pointLight[1].specular", glm::vec3(0.0f, 0.0f, 0.0f));
 		staticShader.setFloat("pointLight[1].constant", 1.0f);
@@ -430,6 +430,83 @@ int main()
 		model = glm::scale(model, glm::vec3(0.1f));
 		staticShader.setMat4("model", model);
 		casa_mod.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Arboles
+		// -------------------------------------------------------------------------------------------------------------------------
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-40.0f, 40.0f, -70.0f));
+		model = glm::scale(model, glm::vec3(0.05f));
+		staticShader.setMat4("model", model);
+		arbol.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-120.0f, 40.0f, 90.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.05f));
+		staticShader.setMat4("model", model);
+		arbol.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Recamara principal
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-113.0f, 0.0f, 50.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		cama_prin.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-118.0f, 0.0f, 38.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		buro.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-118.0f, 0.0f, 61.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		buro.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-112.0f, 0.0f, 24.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		ropero.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-100.0f, 0.0f, 24.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		ropero.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Recamara individual
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-112.0f, 0.0f, -9.0f));
+		model = glm::scale(model, glm::vec3(0.25f));
+		staticShader.setMat4("model", model);
+		cama.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-88.0f, 0.0f, -8.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		ropero.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-102.0f, 0.0f, -9.0f));
+		//model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.09f));
+		staticShader.setMat4("model", model);
+		buro.Draw(staticShader);
+
 
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Carro

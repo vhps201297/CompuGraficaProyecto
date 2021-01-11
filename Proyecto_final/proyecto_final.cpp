@@ -342,7 +342,7 @@ int main()
 	Model silla_albe("resources/objects/Sillones/silla_alb.obj");
 	Model esc_estudio("resources/objects/Escritorio/escritorio_estudio.obj");
 	Model arbol("resources/objects/Arbol/arbol_1.obj");
-	Model casa_mod("resources/objects/Casa_mod/casa.obj");
+	Model casa_mod("resources/objects/Casa_mod/casa_modelo.obj");
 	Model barra("resources/objects/Cocina/barra.obj");
 	Model silla_barra("resources/objects/Cocina/silla_barra.obj");
 	Model alacena("resources/objects/Cocina/alacena.obj");
@@ -353,11 +353,18 @@ int main()
 	Model librero("resources/objects/Escritorio/librero.obj");
 	Model silla_esc("resources/objects/Escritorio/silla_esc.obj");
 	Model comedor("resources/objects/Comedor/comedor.obj");
-
 	Model wc("resources/objects/banio/wc/toilet.obj");
 	Model lavamanos("resources/objects/banio/lavamanos/lavamanos.obj");
 	Model coche("resources/objects/Coche/car.obj");
 	Model lavadora("resources/objects/cuarto_lavado/lavadora.obj ");
+	Model estante("resources/objects/cuarto_lavado/estante.obj ");
+	Model servicio("resources/objects/cuarto_lavado/servicio.obj ");
+
+	Model perro("resources/objects/Perro/perro.obj ");
+	Model ducha("resources/objects/banio/ducha/ducha.obj");
+
+	Model mueble_tv("resources/objects/Mueble_tv/mueble_tv.obj ");
+	Model tv("resources/objects/TV/tv.obj");
 
 	//ModelAnim animacionPersonaje("resources/objects/Personaje1/PersonajeBrazo.dae");
 	//animacionPersonaje.initShaders(animShader.ID);
@@ -444,6 +451,7 @@ int main()
 		staticShader.setMat4("view", view);
 
 		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(3.0f, 0.0f, 53.5f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.1f));
 		staticShader.setMat4("model", model);
@@ -625,12 +633,27 @@ int main()
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Cuarto de lavado
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(-95.0f, 0.0f, -101.0f));
+		model = glm::translate(model, glm::vec3(-103.0f, 0.0f, -101.0f));
 		model = glm::scale(model, glm::vec3(0.045f));
 		staticShader.setMat4("model", model);
 		lavadora.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-80.0f, 0.0f, -103.0f));
+		model = glm::scale(model, glm::vec3(0.1f));
+		staticShader.setMat4("model", model);
+		estante.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Cuarto de servicio
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-118.0f, 6.0f, -95.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 3.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.0f));
+		staticShader.setMat4("model", model);
+		servicio.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Baño
@@ -650,6 +673,13 @@ int main()
 		staticShader.setMat4("model", model);
 		lavamanos.Draw(staticShader);
 
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-106.0f, 0.0f, -71.0f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.02f));
+		staticShader.setMat4("model", model);
+		ducha.Draw(staticShader);
+
 		//Baño de recamara principal
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-68.0f, 0.0f, 54.0f));
@@ -665,6 +695,13 @@ int main()
 		staticShader.setMat4("model", model);
 		lavamanos.Draw(staticShader);
 
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-79.0f, 0.0f, 54.3f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.02f));
+		staticShader.setMat4("model", model);
+		ducha.Draw(staticShader);
+
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Carro
 		// -------------------------------------------------------------------------------------------------------------------------
@@ -674,6 +711,7 @@ int main()
 		model = glm::scale(model, glm::vec3(1.5f));
 		staticShader.setMat4("model", model);
 		coche.Draw(staticShader);
+
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Estudio
 		// -------------------------------------------------------------------------------------------------------------------------
@@ -721,6 +759,27 @@ int main()
 		model = glm::scale(model, glm::vec3(0.08f));
 		staticShader.setMat4("model", model);
 		mesa_centro.Draw(staticShader);
+		
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-16.0f, 5.5f, 64.0f));
+		model = glm::rotate(model, glm::radians(-180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(2.0f));
+		staticShader.setMat4("model", model);
+		tv.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-16.0f, 0.0f, 64.0f));
+		model = glm::scale(model, glm::vec3(1.0f));
+		staticShader.setMat4("model", model);
+		mueble_tv.Draw(staticShader);
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Perro
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 2.0f, 83.0f));
+		model = glm::scale(model, glm::vec3(5.0f));
+		staticShader.setMat4("model", model);
+		perro.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Jardín

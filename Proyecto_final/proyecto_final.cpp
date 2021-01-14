@@ -15,7 +15,7 @@
 #include <glm/gtc/matrix_transform.hpp>	//camera y model
 #include <glm/gtc/type_ptr.hpp>
 #include<time.h>
-
+#include<MMSystem.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>	//Texture
@@ -44,7 +44,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 10.0f, 90.0f));
+Camera camera(glm::vec3(0.0f, 100.0f, 350.0f));
 float MovementSpeed = 0.1f;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -60,50 +60,71 @@ double	deltaTime = 0.0f,
 glm::vec3 lightPosition(0.0f, 4.0f, -10.0f);
 glm::vec3 lightDirection(0.0f, -1.0f, -1.0f);
 
-// posiciones
-//float x = 0.0f;
-//float y = 0.0f;
-float	movAuto_x = 0.0f,
-		movAuto_z = 0.0f,
+float	mov_pelota_x = 0.0f,
+		mov_pelota_y = 0.0f,
+		mov_pelota_z = 0.0f,
+		mov_globo_x = 0.0f,
+		mov_globo_z = 0.0f,
+		mov_globo_y = 0.0f,
+		mov_fenix = 0.0f,
 		orienta = 180.0f;
-bool	animacion = false,
+
+bool	animacion_globo = false,
 		recorrido1 = true,
 		recorrido2 = false,
 		recorrido3 = false,
 		recorrido4 = false,
 		recorrido5 = false,
 		recorrido6 = false,
-		recorrido7 = false;
+		recorrido7 = false,
+		recorrido8 = false,
+		recorrido9 = false,
+		recorrido10 = false;
 
+bool	animacion_pelota = false,
+		recorrido1_pelota = true,
+		recorrido2_pelota = false,
+		recorrido3_pelota = false,
+		recorrido4_pelota = false,
+		recorrido5_pelota = false,
+		recorrido6_pelota = false,
+		recorrido7_pelota = false;
 
 //Keyframes (Manipulación y dibujo)
-float	posX = 0.0f,
-		posY = 0.0f,
-		posZ = 0.0f,
-		rotRodIzq = 0.0f,
-		giroMonito = 0.0f;
-float	incX = 0.0f,
-		incY = 0.0f,
-		incZ = 0.0f,
-		rotInc = 0.0f,
-		giroMonitoInc = 0.0f;
+float	mov_brazo_der = 0.0f,
+		mov_brazo_izq = 0.0f,
+		mov_cuerpo_Y = 0.0f,
+		mov_cuerpo_X = 0.0f,
+		mov_cuerpo_Z = 0.0f,
+		gira_cuerpo = 0.0f;
 
-#define MAX_FRAMES 9
+float mov_techo;
+
+float	inc_mov_brazo_der = 0.0f,
+		inc_mov_brazo_izq = 0.0f,
+		inc_mov_cuerpo_Y = 0.0f,
+		inc_mov_cuerpo_X = 0.0f,
+		inc_mov_cuerpo_Z = 0.0f,
+		inc_gira_cuerpo = 0.0f;
+
+#define MAX_FRAMES 10
 int i_max_steps = 60;
 int i_curr_steps = 0;
+
 typedef struct _frame
 {
 	//Variables para GUARDAR Key Frames
-	float posX;		//Variable para PosicionX
-	float posY;		//Variable para PosicionY
-	float posZ;		//Variable para PosicionZ
-	float rotRodIzq;
-	float giroMonito;
+	float mov_brazo_der = 0.0f;
+	float mov_brazo_izq = 0.0f;
+	float mov_cuerpo_Y = 0.0f;
+	float mov_cuerpo_X = 0.0f;
+	float mov_cuerpo_Z = 0.0f;
+	float gira_cuerpo = 0.0f;
 
 }FRAME;
 
 FRAME KeyFrame[MAX_FRAMES];
-int FrameIndex = 0;			//introducir datos
+int FrameIndex = 27;			//introducir datos
 bool play = false;
 int playIndex = 0;
 
@@ -112,40 +133,40 @@ void saveFrame(void)
 	//printf("frameindex %d\n", FrameIndex);
 	std::cout << "Frame Index = " << FrameIndex << std::endl;
 
-	KeyFrame[FrameIndex].posX = posX;
-	KeyFrame[FrameIndex].posY = posY;
-	KeyFrame[FrameIndex].posZ = posZ;
-
-	KeyFrame[FrameIndex].rotRodIzq = rotRodIzq;
-	KeyFrame[FrameIndex].giroMonito = giroMonito;
+	KeyFrame[FrameIndex].mov_brazo_der = mov_brazo_der;
+	KeyFrame[FrameIndex].mov_brazo_izq = mov_brazo_izq;
+	KeyFrame[FrameIndex].mov_cuerpo_Y = mov_cuerpo_Y;
+	KeyFrame[FrameIndex].gira_cuerpo = gira_cuerpo;
+	KeyFrame[FrameIndex].mov_cuerpo_X = mov_cuerpo_X;
+	KeyFrame[FrameIndex].mov_cuerpo_Z = mov_cuerpo_Z;
 
 	FrameIndex++;
 }
 
 void resetElements(void)
 {
-	posX = KeyFrame[0].posX;
-	posY = KeyFrame[0].posY;
-	posZ = KeyFrame[0].posZ;
-
-	rotRodIzq = KeyFrame[0].rotRodIzq;
-	giroMonito = KeyFrame[0].giroMonito;
+	mov_brazo_der = KeyFrame[0].mov_brazo_der;
+	mov_brazo_izq = KeyFrame[0].mov_brazo_izq;
+	mov_cuerpo_Y = KeyFrame[0].mov_cuerpo_Y;
+	gira_cuerpo = KeyFrame[0].gira_cuerpo;
+	mov_cuerpo_X = KeyFrame[0].mov_cuerpo_X;
+	mov_cuerpo_Z = KeyFrame[0].mov_cuerpo_Z;
 }
 
 void interpolation(void)
 {
-	incX = (KeyFrame[playIndex + 1].posX - KeyFrame[playIndex].posX) / i_max_steps;
-	incY = (KeyFrame[playIndex + 1].posY - KeyFrame[playIndex].posY) / i_max_steps;
-	incZ = (KeyFrame[playIndex + 1].posZ - KeyFrame[playIndex].posZ) / i_max_steps;
-
-	rotInc = (KeyFrame[playIndex + 1].rotRodIzq - KeyFrame[playIndex].rotRodIzq) / i_max_steps;
-	giroMonitoInc = (KeyFrame[playIndex + 1].giroMonito - KeyFrame[playIndex].giroMonito) / i_max_steps;
-
+	inc_mov_brazo_der = (KeyFrame[playIndex + 1].mov_brazo_der - KeyFrame[playIndex].mov_brazo_der) / i_max_steps;
+	inc_mov_brazo_izq = (KeyFrame[playIndex + 1].mov_brazo_izq - KeyFrame[playIndex].mov_brazo_izq) / i_max_steps;
+	inc_mov_cuerpo_Y = (KeyFrame[playIndex + 1].mov_cuerpo_Y - KeyFrame[playIndex].mov_cuerpo_Y) / i_max_steps;
+	inc_gira_cuerpo = (KeyFrame[playIndex + 1].gira_cuerpo - KeyFrame[playIndex].gira_cuerpo) / i_max_steps;
+	inc_mov_cuerpo_X = (KeyFrame[playIndex + 1].mov_cuerpo_X - KeyFrame[playIndex].mov_cuerpo_X) / i_max_steps;
+	inc_mov_cuerpo_Z = (KeyFrame[playIndex + 1].mov_cuerpo_Z - KeyFrame[playIndex].mov_cuerpo_Z) / i_max_steps;
 }
-
 
 void animate(void)
 {
+	mov_fenix = (mov_fenix < 360) ? mov_fenix + 1.0f : 0.0f;
+
 	if (play)
 	{
 		if (i_curr_steps >= i_max_steps) //end of animation between frames?
@@ -168,24 +189,107 @@ void animate(void)
 		else
 		{
 			//Draw animation
-			posX += incX;
-			posY += incY;
-			posZ += incZ;
-
-			rotRodIzq += rotInc;
-			giroMonito += giroMonitoInc;
+			mov_brazo_der += inc_mov_brazo_der;
+			mov_brazo_izq += inc_mov_brazo_izq;
+			mov_cuerpo_Y += inc_mov_cuerpo_Y;
+			mov_cuerpo_X += inc_mov_cuerpo_X;
+			mov_cuerpo_Z += inc_mov_cuerpo_Z;
+			gira_cuerpo += inc_gira_cuerpo;
 
 			i_curr_steps++;
 		}
 	}
 
-	if (animacion)
+	if (animacion_pelota)
+	{
+		if (recorrido1_pelota)
+		{
+			mov_pelota_z += 0.05f;
+			mov_pelota_x -= 0.45f;
+			orienta = -20.0f;
+			if (mov_pelota_x < -60.0f)
+			{
+				recorrido1_pelota = false;
+				recorrido2_pelota = true;
+			}
+		}
+		if (recorrido2_pelota)
+		{
+			mov_pelota_x += 0.2f;
+			mov_pelota_z += 0.4f;
+			orienta = 10.0f;
+			if (mov_pelota_x > -46.0f)
+			{
+				recorrido2_pelota = false;
+				recorrido3_pelota = true;
+			}
+		}
+		if (recorrido3_pelota)
+		{
+			mov_pelota_x += 0.2f;
+			mov_pelota_z -= 0.4f;
+			orienta = -30.0f;
+			if (mov_pelota_z < -5.0f)
+			{
+				recorrido3_pelota = false;
+				recorrido4_pelota = true;
+			}
+		}
+		if (recorrido4_pelota)
+		{
+			mov_pelota_x += 0.3f;
+			mov_pelota_z += 0.3f;
+			orienta = 90.0f;
+			if (mov_pelota_x > 13.0f)
+			{
+				recorrido4_pelota = false;
+				recorrido5_pelota = true;
+			}
+		}
+		if (recorrido5_pelota)
+		{
+			mov_pelota_x -= 0.1f;
+			mov_pelota_z += 0.4f;
+			orienta = 33.69f; //angtan de la pendiente
+			if (mov_pelota_z > 88.0f)
+			{
+				recorrido5_pelota = false;
+				recorrido6_pelota = true;
+			}
+		}
+		if (recorrido6_pelota)
+		{
+			mov_pelota_x -= 0.3f;
+			mov_pelota_z -= 0.3f;
+			orienta = -90.0f;
+			if (mov_pelota_x < -20.0f)
+			{
+				recorrido6_pelota = false;
+				recorrido7_pelota = true;
+			}
+		}
+		if (recorrido7_pelota)
+		{
+			mov_pelota_x += 0.1f;
+			mov_pelota_z -= 0.31f;
+			orienta = 126.13f; //angtan de la pendiente
+			if (mov_pelota_z <= 0.0f)
+			{
+				recorrido7_pelota = false;
+				recorrido1_pelota = true;
+			}
+		}
+
+	}
+
+	if (animacion_globo)
 	{
 		if (recorrido1)
 		{
-			movAuto_z -= 0.9f;
+			mov_globo_z -= 0.6f;
+			mov_globo_y += 0.2;
 			orienta = -180.0f;
-			if (movAuto_z < -150.0f)
+			if (mov_globo_z <= -75.0f)
 			{
 				recorrido1 = false;
 				recorrido2 = true;
@@ -193,19 +297,23 @@ void animate(void)
 		}
 		if (recorrido2)
 		{
-			movAuto_x -= 1.0f;
+			std::cout << "recorrido 2\n";
+			mov_globo_z -= 0.4f;
+			mov_globo_x -= 0.2f;
 			orienta = -90.0f;
-			if (movAuto_x < -200.0f)
+			if (mov_globo_z < -125.0f)
 			{
 				recorrido2 = false;
-				recorrido5 = true;
+				recorrido3 = true;
 			}
 		}
 		if (recorrido3)
 		{
-			movAuto_z += 1.5f;
+			std::cout << "recorrido 3\n";
+			mov_globo_x -= 0.2f;
+			mov_globo_z -= 0.2f;
 			orienta = 0.0f;
-			if (movAuto_z < -150.0f)
+			if (mov_globo_z < -150.0f)
 			{
 				recorrido3 = false;
 				recorrido4 = true;
@@ -213,20 +321,26 @@ void animate(void)
 		}
 		if (recorrido4)
 		{
-			movAuto_x += 0.7f;
+			std::cout << "recorrido 4\n";
+			mov_globo_x -= 0.2f;
+			mov_globo_z -= 0.2f;
 			orienta = 90.0f;
-			if (movAuto_x > 0.0f)
+			if (mov_globo_z < -175.0f)
 			{
 				recorrido4 = false;
-				recorrido1 = true;
+				recorrido5 = true;
 			}
 		}
 		if (recorrido5)
 		{
-			movAuto_x += 2.0f;
-			movAuto_z += 3.0f;
+			std::cout << "recorrido 5\n";
+
+			std::cout << "altura: " << mov_globo_y;
+			mov_globo_z += 0.2f;
+			mov_globo_x -= 0.6f;
+			mov_globo_y += 0.2;
 			orienta = 33.69f; //angtan de la pendiente
-			if (movAuto_z >= 150.0f)
+			if (mov_globo_z > -150.0f)
 			{
 				recorrido5 = false;
 				recorrido6 = true;
@@ -234,9 +348,11 @@ void animate(void)
 		}
 		if (recorrido6)
 		{
-			movAuto_x -= 1.0f;
+			mov_globo_x += 0.1f;
+			mov_globo_z += 0.5f;
+			mov_globo_y -= 0.1f;
 			orienta = -90.0f;
-			if (movAuto_x < -200.0f)
+			if (mov_globo_z > -25.0f)
 			{
 				recorrido6 = false;
 				recorrido7 = true;
@@ -244,12 +360,46 @@ void animate(void)
 		}
 		if (recorrido7)
 		{
-			movAuto_x += 4.0f;
-			movAuto_z -= 3.0f;
+			mov_globo_x += 0.2f;
+			mov_globo_z += 0.2f;
 			orienta = 126.13f; //angtan de la pendiente
-			if (movAuto_z <= 0.0f)
+			if (mov_globo_z > 0.0f)
 			{
 				recorrido7 = false;
+				recorrido8 = true;
+			}
+		}
+		if (recorrido8)
+		{
+			mov_globo_x += 0.4f;
+			mov_globo_z += 0.2f;
+			mov_globo_y -= 0.2f;
+			orienta = 126.13f; //angtan de la pendiente
+			if (mov_globo_z > 25.0f)
+			{
+				recorrido8 = false;
+				recorrido9 = true;
+			}
+		}
+		if (recorrido9)
+		{
+			mov_globo_x += 0.4f;
+			orienta = 126.13f; //angtan de la pendiente
+			if (mov_globo_x > -25.0f)
+			{
+				recorrido9 = false;
+				recorrido10 = true;
+			}
+		}
+
+		if (recorrido10)
+		{
+			mov_globo_x += 0.2f;
+			mov_globo_z -= 0.2f;
+			orienta = 126.13f; //angtan de la pendiente
+			if (mov_globo_x > 0.0f)
+			{
+				recorrido10 = false;
 				recorrido1 = true;
 			}
 		}
@@ -324,13 +474,9 @@ int main()
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
 
+	
 	// load models
 	// -----------
-	Model piso("resources/objects/piso/piso.obj");
-	Model carro("resources/objects/lambo/carroceria.obj");
-	Model llanta("resources/objects/lambo/Wheel.obj");
-	Model casaVieja("resources/objects/casa/OldHouse.obj");
-	Model casaDoll("resources/objects/casa/DollHouse.obj");
 	Model cama("resources/objects/Cama/cama.obj");
 	Model cama_prin("resources/objects/Cama/cama_prin.obj");
 	Model ropero("resources/objects/Ropero/ropero.obj");
@@ -343,6 +489,7 @@ int main()
 	Model esc_estudio("resources/objects/Escritorio/escritorio_estudio.obj");
 	Model arbol("resources/objects/Arbol/arbol_1.obj");
 	Model casa_mod("resources/objects/Casa_mod/casa_modelo.obj");
+	Model techo("resources/objects/Casa_mod/techo.obj");
 	Model barra("resources/objects/Cocina/barra.obj");
 	Model silla_barra("resources/objects/Cocina/silla_barra.obj");
 	Model alacena("resources/objects/Cocina/alacena.obj");
@@ -359,34 +506,223 @@ int main()
 	Model lavadora("resources/objects/cuarto_lavado/lavadora.obj ");
 	Model estante("resources/objects/cuarto_lavado/estante.obj ");
 	Model servicio("resources/objects/cuarto_lavado/servicio.obj ");
-
-	Model perro("resources/objects/Perro/perro.obj ");
 	Model ducha("resources/objects/banio/ducha/ducha.obj");
-
 	Model mueble_tv("resources/objects/Mueble_tv/mueble_tv.obj ");
 	Model tv("resources/objects/TV/tv.obj");
+	Model globo("resources/objects/Globo/globo.obj");
+	Model nino_cuerpo("resources/objects/Nino/nino_cuerpo.obj");
+	Model nino_brazo_der("resources/objects/Nino/brazo_derecho.obj");
+	Model nino_brazo_izq("resources/objects/Nino/brazo_izquierdo.obj");
+	Model stitch("resources/objects/Stitch/stitch.obj");
+	Model perro_cabeza("resources/objects/Perrito/perrito_cabeza.obj ");
+	Model perro_cuerpo("resources/objects/Perrito/perrito_cuerpo.obj ");
+	Model perrito("resources/objects/Perro/perro.obj ");
+	Model fenix("resources/objects/Fenix/fenix.obj ");
+	Model pelota("resources/objects/Pelota/pelota.obj ");
 
 	//ModelAnim animacionPersonaje("resources/objects/Personaje1/PersonajeBrazo.dae");
 	//animacionPersonaje.initShaders(animShader.ID);
 
-	//Inicialización de KeyFrames
-	for (int i = 0; i < MAX_FRAMES; i++)
-	{
-		KeyFrame[i].posX = 0;
-		KeyFrame[i].posY = 0;
-		KeyFrame[i].posZ = 0;
-		KeyFrame[i].rotRodIzq = 0;
-		KeyFrame[i].giroMonito = 0;
-	}
+	KeyFrame[0].mov_brazo_der = 0;
+	KeyFrame[0].mov_brazo_izq = 0;
+	KeyFrame[0].gira_cuerpo = 0;
+	KeyFrame[0].mov_cuerpo_Y = 0;
+	KeyFrame[0].mov_cuerpo_X = 0;
+	KeyFrame[0].mov_cuerpo_Z = 0;
+
+	KeyFrame[1].mov_brazo_der = 60;
+	KeyFrame[1].mov_brazo_izq = 60;
+	KeyFrame[1].gira_cuerpo = 180;
+	KeyFrame[1].mov_cuerpo_Y = 0;
+	KeyFrame[1].mov_cuerpo_X = 20;
+	KeyFrame[1].mov_cuerpo_Z = 0;
+	
+	KeyFrame[2].mov_brazo_der = -60;
+	KeyFrame[2].mov_brazo_izq = -60;
+	KeyFrame[2].gira_cuerpo = 180;
+	KeyFrame[2].mov_cuerpo_Y = 0;
+	KeyFrame[2].mov_cuerpo_X = 20;
+	KeyFrame[2].mov_cuerpo_Z = -46;
+
+	KeyFrame[3].mov_brazo_der = 60;
+	KeyFrame[3].mov_brazo_izq = 60;
+	KeyFrame[3].gira_cuerpo = 180;
+	KeyFrame[3].mov_cuerpo_Y = 0;
+	KeyFrame[3].mov_cuerpo_X = 20;
+	KeyFrame[3].mov_cuerpo_Z = -92;
+
+	KeyFrame[4].mov_brazo_der = -60;
+	KeyFrame[4].mov_brazo_izq = -60;
+	KeyFrame[4].gira_cuerpo = 180;
+	KeyFrame[4].mov_cuerpo_Y = 0;
+	KeyFrame[4].mov_cuerpo_X = 20;
+	KeyFrame[4].mov_cuerpo_Z = -138;
+
+	KeyFrame[5].mov_brazo_der = 60;
+	KeyFrame[5].mov_brazo_izq = 60;
+	KeyFrame[5].gira_cuerpo = 180;
+	KeyFrame[5].mov_cuerpo_Y = 0;
+	KeyFrame[5].mov_cuerpo_X = 20;
+	KeyFrame[5].mov_cuerpo_Z = -184;
+
+	KeyFrame[6].mov_brazo_der = -60;
+	KeyFrame[6].mov_brazo_izq = -60;
+	KeyFrame[6].gira_cuerpo = 270;
+	KeyFrame[6].mov_cuerpo_Y = 0;
+	KeyFrame[6].mov_cuerpo_X = 20;
+	KeyFrame[6].mov_cuerpo_Z = -230;
+
+	KeyFrame[7].mov_brazo_der = 60;
+	KeyFrame[7].mov_brazo_izq = 60;
+	KeyFrame[7].gira_cuerpo = 270;
+	KeyFrame[7].mov_cuerpo_Y = 0;
+	KeyFrame[7].mov_cuerpo_X = -24;
+	KeyFrame[7].mov_cuerpo_Z = -230;
+
+	KeyFrame[8].mov_brazo_der = -60;
+	KeyFrame[8].mov_brazo_izq = -60;
+	KeyFrame[8].gira_cuerpo = 270;
+	KeyFrame[8].mov_cuerpo_Y = 0;
+	KeyFrame[8].mov_cuerpo_X = -68;
+	KeyFrame[8].mov_cuerpo_Z = -230;
+
+	KeyFrame[9].mov_brazo_der = 60;
+	KeyFrame[9].mov_brazo_izq = 60;
+	KeyFrame[9].gira_cuerpo = 270;
+	KeyFrame[9].mov_cuerpo_Y = 0;
+	KeyFrame[9].mov_cuerpo_X = -112;
+	KeyFrame[9].mov_cuerpo_Z = -230;
+
+	KeyFrame[10].mov_brazo_der = -60;
+	KeyFrame[10].mov_brazo_izq = -60;
+	KeyFrame[10].gira_cuerpo = 270;
+	KeyFrame[10].mov_cuerpo_Y = 0;
+	KeyFrame[10].mov_cuerpo_X = -156;
+	KeyFrame[10].mov_cuerpo_Z = -230;
+
+	KeyFrame[11].mov_brazo_der = 60;
+	KeyFrame[11].mov_brazo_izq = 60;
+	KeyFrame[11].gira_cuerpo = 270;
+	KeyFrame[11].mov_cuerpo_Y = 0;
+	KeyFrame[11].mov_cuerpo_X = -200;
+	KeyFrame[11].mov_cuerpo_Z = -230;
+
+	KeyFrame[12].mov_brazo_der = -60;
+	KeyFrame[12].mov_brazo_izq = -60;
+	KeyFrame[12].gira_cuerpo = 0;
+	KeyFrame[12].mov_cuerpo_Y = 0;
+	KeyFrame[12].mov_cuerpo_X = -244;
+	KeyFrame[12].mov_cuerpo_Z = -230;
+
+	KeyFrame[13].mov_brazo_der = 60;
+	KeyFrame[13].mov_brazo_izq = 60;
+	KeyFrame[13].gira_cuerpo = 0;
+	KeyFrame[13].mov_cuerpo_Y = 0;
+	KeyFrame[13].mov_cuerpo_X = -244;
+	KeyFrame[13].mov_cuerpo_Z = -184;
+
+	KeyFrame[14].mov_brazo_der = -60;
+	KeyFrame[14].mov_brazo_izq = -60;
+	KeyFrame[14].gira_cuerpo = 0;
+	KeyFrame[14].mov_cuerpo_Y = 0;
+	KeyFrame[14].mov_cuerpo_X = -244;
+	KeyFrame[14].mov_cuerpo_Z = -138;
+
+	KeyFrame[15].mov_brazo_der = 60;
+	KeyFrame[15].mov_brazo_izq = 60;
+	KeyFrame[15].gira_cuerpo = 0;
+	KeyFrame[15].mov_cuerpo_Y = 0;
+	KeyFrame[15].mov_cuerpo_X = -244;
+	KeyFrame[15].mov_cuerpo_Z = -92;
+
+	KeyFrame[16].mov_brazo_der = -60;
+	KeyFrame[16].mov_brazo_izq = -60;
+	KeyFrame[16].gira_cuerpo = 0;
+	KeyFrame[16].mov_cuerpo_Y = 0;
+	KeyFrame[16].mov_cuerpo_X = -244;
+	KeyFrame[16].mov_cuerpo_Z = -46;
+
+	KeyFrame[17].mov_brazo_der = 60;
+	KeyFrame[17].mov_brazo_izq = 60;
+	KeyFrame[17].gira_cuerpo = 90;
+	KeyFrame[17].mov_cuerpo_Y = 0;
+	KeyFrame[17].mov_cuerpo_X = -244;
+	KeyFrame[17].mov_cuerpo_Z = 0;
+
+	KeyFrame[18].mov_brazo_der = -60;
+	KeyFrame[18].mov_brazo_izq = -60;
+	KeyFrame[18].gira_cuerpo = 90;
+	KeyFrame[18].mov_cuerpo_Y = 0;
+	KeyFrame[18].mov_cuerpo_X = -202.5;
+	KeyFrame[18].mov_cuerpo_Z = 0;
+
+	KeyFrame[19].mov_brazo_der = 60;
+	KeyFrame[19].mov_brazo_izq = 60;
+	KeyFrame[19].gira_cuerpo = 90;
+	KeyFrame[19].mov_cuerpo_Y = 0;
+	KeyFrame[19].mov_cuerpo_X = -161;
+	KeyFrame[19].mov_cuerpo_Z = 0;
+
+	KeyFrame[20].mov_brazo_der = -60;
+	KeyFrame[20].mov_brazo_izq = -60;
+	KeyFrame[20].gira_cuerpo = 90;
+	KeyFrame[20].mov_cuerpo_Y = 0;
+	KeyFrame[20].mov_cuerpo_X = -119.5;
+	KeyFrame[20].mov_cuerpo_Z = 0;
+
+	KeyFrame[21].mov_brazo_der = 60;
+	KeyFrame[21].mov_brazo_izq = 60;
+	KeyFrame[21].gira_cuerpo = 180;
+	KeyFrame[21].mov_cuerpo_Y = 0;
+	KeyFrame[21].mov_cuerpo_X = -78;
+	KeyFrame[21].mov_cuerpo_Z = 0;
+
+	KeyFrame[22].mov_brazo_der = 80;
+	KeyFrame[22].mov_brazo_izq = -80;
+	KeyFrame[22].gira_cuerpo = 270;
+	KeyFrame[22].mov_cuerpo_Y = 0;
+	KeyFrame[22].mov_cuerpo_X = -78;
+	KeyFrame[22].mov_cuerpo_Z = -83;
+
+	KeyFrame[23].mov_brazo_der = -80;
+	KeyFrame[23].mov_brazo_izq = 80;
+	KeyFrame[23].gira_cuerpo = 180;
+	KeyFrame[23].mov_cuerpo_Y = 0;
+	KeyFrame[23].mov_cuerpo_X = -118;
+	KeyFrame[23].mov_cuerpo_Z = -83;
+
+	KeyFrame[24].mov_brazo_der = 80;
+	KeyFrame[24].mov_brazo_izq = -80;
+	KeyFrame[24].gira_cuerpo = 90;
+	KeyFrame[24].mov_cuerpo_Y = 0;
+	KeyFrame[24].mov_cuerpo_X = -118;
+	KeyFrame[24].mov_cuerpo_Z = -171;
+
+	KeyFrame[25].mov_brazo_der = 80;
+	KeyFrame[25].mov_brazo_izq = -80;
+	KeyFrame[25].gira_cuerpo = 90;
+	KeyFrame[25].mov_cuerpo_Y = 3;
+	KeyFrame[25].mov_cuerpo_X = -104;
+	KeyFrame[25].mov_cuerpo_Z = -171;
+
+	KeyFrame[26].mov_brazo_der = 80;
+	KeyFrame[26].mov_brazo_izq = -80;
+	KeyFrame[26].gira_cuerpo = 90;
+	KeyFrame[26].mov_cuerpo_Y = 0;
+	KeyFrame[26].mov_cuerpo_X = -90;
+	KeyFrame[26].mov_cuerpo_Z = -171;
 
 	// draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
+	
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
 		skyboxShader.setInt("skybox", 0);
+		
 		
 		// per-frame time logic
 		// --------------------
@@ -442,7 +778,6 @@ int main()
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
 		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.75f);
 		
-
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Escenario
 		// -------------------------------------------------------------------------------------------------------------------------
@@ -457,10 +792,16 @@ int main()
 		staticShader.setMat4("model", model);
 		casa_mod.Draw(staticShader);
 
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-30.0f, mov_techo, -8.0f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.1f));
+		staticShader.setMat4("model", model);
+		techo.Draw(staticShader);
+
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Arboles
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-40.0f, 40.0f, -70.0f));
 		model = glm::scale(model, glm::vec3(0.05f));
@@ -564,7 +905,6 @@ int main()
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Cocina
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(19.0f, 0.0f, -18.0f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -656,7 +996,7 @@ int main()
 		servicio.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
-		// Baño
+		// Baños
 		// -------------------------------------------------------------------------------------------------------------------------
 		// baño principal
 		model = glm::mat4(1.0f);
@@ -705,7 +1045,6 @@ int main()
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Carro
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(50.0f, 0.0f, 40.0f));
 		model = glm::scale(model, glm::vec3(1.5f));
@@ -713,9 +1052,16 @@ int main()
 		coche.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
+		// Stitch
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(1.0f));
+		staticShader.setMat4("model", model);
+		stitch.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
 		// Estudio
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-50.0f, 0.0f, 65.0f));
 		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -746,7 +1092,6 @@ int main()
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Sala
 		// -------------------------------------------------------------------------------------------------------------------------
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 55.0f));
 		model = glm::rotate(model, glm::radians(-87.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -772,14 +1117,40 @@ int main()
 		model = glm::scale(model, glm::vec3(1.0f));
 		staticShader.setMat4("model", model);
 		mueble_tv.Draw(staticShader);
+
 		// -------------------------------------------------------------------------------------------------------------------------
-		// Perro
+		// Perrito
 		// -------------------------------------------------------------------------------------------------------------------------
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 2.0f, 83.0f));
 		model = glm::scale(model, glm::vec3(5.0f));
 		staticShader.setMat4("model", model);
-		perro.Draw(staticShader);
+		perrito.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Perro
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.2f, 5.0f, 85.6f));
+		model = glm::scale(model, glm::vec3(5.0f));
+		staticShader.setMat4("model", model);
+		perro_cabeza.Draw(staticShader);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 84.6f));
+		model = glm::scale(model, glm::vec3(5.0f));
+		staticShader.setMat4("model", model);
+		perro_cuerpo.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Fenix
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::rotate(glm::mat4(1.0f), glm::radians(mov_fenix), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(120.0f, 70.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(1.0f));
+		staticShader.setMat4("model", model);
+		fenix.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Jardín
@@ -805,39 +1176,50 @@ int main()
 		staticShader.setMat4("model", model);
 		silla_albe.Draw(staticShader);
 
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Globo
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(90.0f + mov_globo_x, 15.0f + mov_globo_y, 110.0f + mov_globo_z));
+		model = glm::scale(model, glm::vec3(2.0f));
+		staticShader.setMat4("model", model);
+		globo.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
-		// Carro
+		// Pelota
 		// -------------------------------------------------------------------------------------------------------------------------
-		/*model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //rotacion sobre el eje y para que coincida con la dirección
-		model = glm::translate(model, glm::vec3(15.0f + movAuto_x, -1.0f, movAuto_z));  ///15, -1, 0 de manera local para la animacion es 0, 0, 0
-		tmp = model = glm::rotate(model, glm::radians(orienta), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(70.0f + mov_pelota_x, -0.5f, -90.0f + mov_pelota_z));
+		model = glm::scale(model, glm::vec3(2.0f));
 		staticShader.setMat4("model", model);
-		carro.Draw(staticShader);
+		pelota.Draw(staticShader);
 
-		model = glm::translate(tmp, glm::vec3(8.5f, 2.5f, 12.9f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+		// -------------------------------------------------------------------------------------------------------------------------
+		// Niño
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(93.4f + mov_cuerpo_X, 0.0f + mov_cuerpo_Y, 108.2f + mov_cuerpo_Z));
+		tmp = model = glm::rotate(model, glm::radians(gira_cuerpo), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f));
 		staticShader.setMat4("model", model);
-		llanta.Draw(staticShader);	//Izq delantera
+		nino_cuerpo.Draw(staticShader);
 
-		model = glm::translate(tmp, glm::vec3(-8.5f, 2.5f, 12.9f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::mat4(1.0f);
+		model = glm::translate(tmp, glm::vec3(0.0f, 11.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(-1.2f, 0.0f, -0.59f));
+		model = glm::rotate(model, glm::radians(mov_brazo_der), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f));
 		staticShader.setMat4("model", model);
-		llanta.Draw(staticShader);	//Der delantera
+		nino_brazo_der.Draw(staticShader);
 
-		model = glm::translate(tmp, glm::vec3(-8.5f, 2.5f, -14.5f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::mat4(1.0f);
+		model = glm::translate(tmp, glm::vec3(0.0f, 11.0f, 0.0f));
+		model = glm::translate(model, glm::vec3(1.3f, 0.0f, -0.59f));
+		model = glm::rotate(model, glm::radians(mov_brazo_izq), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(8.0f));
 		staticShader.setMat4("model", model);
-		llanta.Draw(staticShader);	//Der trasera
-
-		model = glm::translate(tmp, glm::vec3(8.5f, 2.5f, -14.5f));
-		model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-		staticShader.setMat4("model", model);
-		llanta.Draw(staticShader);	//Izq trase*/
-		
+		nino_brazo_izq.Draw(staticShader);
+	
 		// -------------------------------------------------------------------------------------------------------------------------
 		// Termina Escenario
 		// -------------------------------------------------------------------------------------------------------------------------
@@ -882,28 +1264,26 @@ void my_input(GLFWwindow *window, int key, int scancode, int action, int mode)
 		camera.ProcessKeyboard(LEFT, (float)deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, (float)deltaTime);
-	//To Configure Model
-	if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
-		posZ++;
-	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-		posZ--;
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-		posX--;
-	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-		posX++;
-	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-		rotRodIzq--;
-	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-		rotRodIzq++;
-	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-		giroMonito--;
-	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-		giroMonito++;
 
-	//Car animation
+	//Subir y bajar techo
+	if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+		if (mov_techo <= -1.0f)
+			mov_techo++;
+	}
+		
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+		if (mov_techo >= -60.0f)
+			mov_techo--;
+	}
+
+	// Pelota animation
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-		animacion ^= true;
+		animacion_pelota ^= true;
 
+	// Animación del globo
+	if (key == GLFW_KEY_T && action == GLFW_PRESS)
+		animacion_globo ^= true;
+	
 	//To play KeyFrame animation 
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
 	{

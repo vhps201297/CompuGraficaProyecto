@@ -7,7 +7,6 @@
 /* ---------------------   Pólito Seba Víctor Hugo   ---------------------*/
 /*------------------------------------------------------------------------*/
 #include <Windows.h>
-
 #include <glad/glad.h>
 #include <glfw3.h>	//main
 #include <stdlib.h>		
@@ -16,13 +15,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include<time.h>
 #include<MMSystem.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>	//Texture
-
 #define SDL_MAIN_HANDLED
 #include <SDL/SDL.h>
-
 #include <shader_m.h>
 #include <camera.h>
 #include <modelAnim.h>
@@ -35,7 +31,6 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-//void my_input(GLFWwindow *window);
 void my_input(GLFWwindow* window, int key, int scancode, int action, int mods);
 void animate(void);
 
@@ -53,8 +48,7 @@ bool firstMouse = true;
 // timing
 const int FPS = 60;
 const int LOOP_TIME = 1000 / FPS; // = 16 milisec // 1000 millisec == 1 sec
-double	deltaTime = 0.0f,
-		lastFrame = 0.0f;
+double	deltaTime = 0.0f, lastFrame = 0.0f;
 
 //Lighting
 glm::vec3 lightPosition(0.0f, 4.0f, -10.0f);
@@ -66,8 +60,11 @@ float	mov_pelota_x = 0.0f,
 		mov_globo_x = 0.0f,
 		mov_globo_z = 0.0f,
 		mov_globo_y = 0.0f,
+		mov_auto_x = 0.0f,
+		mov_auto_y = 0.0f,
+		mov_auto_z = 0.0f,
 		mov_fenix = 0.0f,
-		orienta = 180.0f;
+		orienta = 0.0f;
 
 bool	animacion_globo = false,
 		recorrido1 = true,
@@ -89,6 +86,22 @@ bool	animacion_pelota = false,
 		recorrido5_pelota = false,
 		recorrido6_pelota = false,
 		recorrido7_pelota = false;
+
+bool anim_auto = false;
+bool rec_auto1 = true;
+bool rec_auto2 = false;
+bool rec_auto3 = false;
+boolean auto_in = false;
+bool esta_auto0 = true;
+bool esta_auto1 = false;
+bool esta_auto2 = false;
+bool esta_auto3 = false;
+bool esta_auto4 = false;
+bool esta_auto5 = false;
+bool esta_auto6 = false;
+bool esta_auto7 = false;
+bool esta_auto8 = false;
+bool esta_estacionado = true;
 
 //Keyframes (Manipulación y dibujo)
 float	mov_brazo_der = 0.0f,
@@ -206,7 +219,6 @@ void animate(void)
 		{
 			mov_pelota_z += 0.05f;
 			mov_pelota_x -= 0.45f;
-			orienta = -20.0f;
 			if (mov_pelota_x < -60.0f)
 			{
 				recorrido1_pelota = false;
@@ -217,7 +229,6 @@ void animate(void)
 		{
 			mov_pelota_x += 0.2f;
 			mov_pelota_z += 0.4f;
-			orienta = 10.0f;
 			if (mov_pelota_x > -46.0f)
 			{
 				recorrido2_pelota = false;
@@ -228,7 +239,6 @@ void animate(void)
 		{
 			mov_pelota_x += 0.2f;
 			mov_pelota_z -= 0.4f;
-			orienta = -30.0f;
 			if (mov_pelota_z < -5.0f)
 			{
 				recorrido3_pelota = false;
@@ -239,7 +249,6 @@ void animate(void)
 		{
 			mov_pelota_x += 0.3f;
 			mov_pelota_z += 0.3f;
-			orienta = 90.0f;
 			if (mov_pelota_x > 13.0f)
 			{
 				recorrido4_pelota = false;
@@ -250,7 +259,6 @@ void animate(void)
 		{
 			mov_pelota_x -= 0.1f;
 			mov_pelota_z += 0.4f;
-			orienta = 33.69f; //angtan de la pendiente
 			if (mov_pelota_z > 88.0f)
 			{
 				recorrido5_pelota = false;
@@ -261,7 +269,6 @@ void animate(void)
 		{
 			mov_pelota_x -= 0.3f;
 			mov_pelota_z -= 0.3f;
-			orienta = -90.0f;
 			if (mov_pelota_x < -20.0f)
 			{
 				recorrido6_pelota = false;
@@ -272,7 +279,6 @@ void animate(void)
 		{
 			mov_pelota_x += 0.1f;
 			mov_pelota_z -= 0.31f;
-			orienta = 126.13f; //angtan de la pendiente
 			if (mov_pelota_z <= 0.0f)
 			{
 				recorrido7_pelota = false;
@@ -288,7 +294,6 @@ void animate(void)
 		{
 			mov_globo_z -= 0.6f;
 			mov_globo_y += 0.2;
-			orienta = -180.0f;
 			if (mov_globo_z <= -75.0f)
 			{
 				recorrido1 = false;
@@ -300,7 +305,6 @@ void animate(void)
 			std::cout << "recorrido 2\n";
 			mov_globo_z -= 0.4f;
 			mov_globo_x -= 0.2f;
-			orienta = -90.0f;
 			if (mov_globo_z < -125.0f)
 			{
 				recorrido2 = false;
@@ -312,7 +316,6 @@ void animate(void)
 			std::cout << "recorrido 3\n";
 			mov_globo_x -= 0.2f;
 			mov_globo_z -= 0.2f;
-			orienta = 0.0f;
 			if (mov_globo_z < -150.0f)
 			{
 				recorrido3 = false;
@@ -324,7 +327,6 @@ void animate(void)
 			std::cout << "recorrido 4\n";
 			mov_globo_x -= 0.2f;
 			mov_globo_z -= 0.2f;
-			orienta = 90.0f;
 			if (mov_globo_z < -175.0f)
 			{
 				recorrido4 = false;
@@ -339,7 +341,6 @@ void animate(void)
 			mov_globo_z += 0.2f;
 			mov_globo_x -= 0.6f;
 			mov_globo_y += 0.2;
-			orienta = 33.69f; //angtan de la pendiente
 			if (mov_globo_z > -150.0f)
 			{
 				recorrido5 = false;
@@ -351,7 +352,6 @@ void animate(void)
 			mov_globo_x += 0.1f;
 			mov_globo_z += 0.5f;
 			mov_globo_y -= 0.1f;
-			orienta = -90.0f;
 			if (mov_globo_z > -25.0f)
 			{
 				recorrido6 = false;
@@ -362,7 +362,6 @@ void animate(void)
 		{
 			mov_globo_x += 0.2f;
 			mov_globo_z += 0.2f;
-			orienta = 126.13f; //angtan de la pendiente
 			if (mov_globo_z > 0.0f)
 			{
 				recorrido7 = false;
@@ -374,7 +373,6 @@ void animate(void)
 			mov_globo_x += 0.4f;
 			mov_globo_z += 0.2f;
 			mov_globo_y -= 0.2f;
-			orienta = 126.13f; //angtan de la pendiente
 			if (mov_globo_z > 25.0f)
 			{
 				recorrido8 = false;
@@ -384,7 +382,6 @@ void animate(void)
 		if (recorrido9)
 		{
 			mov_globo_x += 0.4f;
-			orienta = 126.13f; //angtan de la pendiente
 			if (mov_globo_x > -25.0f)
 			{
 				recorrido9 = false;
@@ -396,7 +393,6 @@ void animate(void)
 		{
 			mov_globo_x += 0.2f;
 			mov_globo_z -= 0.2f;
-			orienta = 126.13f; //angtan de la pendiente
 			if (mov_globo_x > 0.0f)
 			{
 				recorrido10 = false;
@@ -404,6 +400,129 @@ void animate(void)
 			}
 		}
 
+	}
+
+	
+	if (anim_auto && esta_estacionado)
+	{
+		if (rec_auto1) {
+
+			mov_auto_z += 0.4f;
+			orienta = 0.0f;
+			if (mov_auto_z > 50.0f) {
+				rec_auto1 = false;
+				rec_auto2 = true;
+			}
+		}
+
+		if (rec_auto2) {
+			mov_auto_z += 0.4f;
+			mov_auto_x -= 0.4f;
+			orienta = -45.0f;
+			if (mov_auto_z > 90.0f) {
+				rec_auto2 = false;
+				rec_auto3 = true;
+			}
+		}
+
+		if (rec_auto3) {
+			mov_auto_x -= 0.8f;
+			orienta = -90.0f;
+			if (mov_auto_x < -150.0f) {
+				rec_auto3 = false;
+				rec_auto1 = true;
+				anim_auto = false;
+				esta_estacionado = false;
+			}
+		}
+	}
+
+	if (auto_in && !esta_estacionado) {
+
+		if (esta_auto0) {
+			mov_auto_x -= 0.8f;
+			orienta = -90.0f;
+			if (mov_auto_x < -175.0f) {
+				esta_auto0 = false;
+				esta_auto1 = true;
+			}
+		}
+
+		if (esta_auto1) {
+			mov_auto_x -= 0.6f;
+			mov_auto_z -= 0.6f;
+			orienta = -135.0f;
+			if (mov_auto_x < -200.0f) {
+				esta_auto1 = false;
+				esta_auto2 = true;
+			}
+		}
+
+		if (esta_auto2) {
+			mov_auto_z -= 0.4;
+			orienta = 180.0f;
+			if (mov_auto_z < 90.0f) {
+				esta_auto2 = false;
+				esta_auto3 = true;
+			}
+		}
+
+		if (esta_auto3) {
+			mov_auto_z += 0.4;
+			if (mov_auto_z > 75.0f) {
+				esta_auto3 = false;
+				esta_auto4 = true;
+			}
+		}
+
+		if (esta_auto4) {
+			mov_auto_z += 0.4;
+			mov_auto_x -= 0.4;
+			orienta = 135.0f;
+			if (mov_auto_z > 90.0f) {
+				esta_auto4 = false;
+				esta_auto5 = true;
+			}
+		}
+
+		if (esta_auto5) {
+			mov_auto_x -= 0.4;
+			orienta = 90.0f;
+			if (mov_auto_x < -200.0f) {
+				esta_auto5 = false;
+				esta_auto6 = true;
+			}
+		}
+
+		if (esta_auto6) {
+			mov_auto_x += 1.0;
+			if (mov_auto_x > 40.0f) {
+				esta_auto6 = false;
+				esta_auto7 = true;
+			}
+		}
+
+		if (esta_auto7) {
+			mov_auto_x -= 1.0f;
+			mov_auto_z -= 1.0f;
+			orienta = 45.0f;
+			if (mov_auto_z < 50.0) {
+				esta_auto7 = false;
+				esta_auto8 = true;
+			}
+		}
+
+		if (esta_auto8) {
+			mov_auto_z -= 2.0f;
+			orienta = 0.0f;
+			if (mov_auto_z < 0) {
+				esta_auto8 = false;
+				esta_auto0 = true;
+				auto_in = false;
+				esta_estacionado = true;
+			}
+		}
+		
 	}
 }
 
@@ -1046,7 +1165,8 @@ int main()
 		// Carro
 		// -------------------------------------------------------------------------------------------------------------------------
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(50.0f, 0.0f, 40.0f));
+		model = glm::translate(model, glm::vec3(50.0f + mov_auto_x, 0.0f + mov_auto_y, 40.0f + mov_auto_z));
+		model = glm::rotate(model,glm::radians(orienta), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.5f));
 		staticShader.setMat4("model", model);
 		coche.Draw(staticShader);
@@ -1275,6 +1395,13 @@ void my_input(GLFWwindow *window, int key, int scancode, int action, int mode)
 		if (mov_techo >= -60.0f)
 			mov_techo--;
 	}
+	// Coche animation
+	if (key == GLFW_KEY_O && action == GLFW_PRESS)
+		anim_auto ^= true;
+
+	// Coche animation
+	if (key == GLFW_KEY_I && action == GLFW_PRESS)
+		auto_in ^= true;
 
 	// Pelota animation
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)

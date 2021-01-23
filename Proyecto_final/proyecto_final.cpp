@@ -637,7 +637,7 @@ int main()
 	Model perrito("resources/objects/Perro/perro.obj ");
 	Model fenix("resources/objects/Fenix/fenix.obj ");
 	Model pelota("resources/objects/Pelota/pelota.obj ");
-	Model stitch("resources/objects/Stitch/stitch.obj");
+	Model stitch("resources/objects/Stitch/stitch_f.obj");
 	Model bugs("resources/objects/Bugs/bugs_bunny.obj");
 
 	//ModelAnim animacionPersonaje("resources/objects/Personaje1/PersonajeBrazo.dae");
@@ -835,7 +835,7 @@ int main()
 	// draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
+	//PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
 	
 	// render loop
 	// -----------
@@ -1176,6 +1176,7 @@ int main()
 		// Stitch
 		// -------------------------------------------------------------------------------------------------------------------------
 		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-16.0f, 5.0f, 37.0f));
 		model = glm::scale(model, glm::vec3(1.0f));
 		staticShader.setMat4("model", model);
 		stitch.Draw(staticShader);

@@ -632,12 +632,13 @@ int main()
 	Model nino_cuerpo("resources/objects/Nino/nino_cuerpo.obj");
 	Model nino_brazo_der("resources/objects/Nino/brazo_derecho.obj");
 	Model nino_brazo_izq("resources/objects/Nino/brazo_izquierdo.obj");
-	Model stitch("resources/objects/Stitch/stitch.obj");
 	Model perro_cabeza("resources/objects/Perrito/perrito_cabeza.obj ");
 	Model perro_cuerpo("resources/objects/Perrito/perrito_cuerpo.obj ");
 	Model perrito("resources/objects/Perro/perro.obj ");
 	Model fenix("resources/objects/Fenix/fenix.obj ");
 	Model pelota("resources/objects/Pelota/pelota.obj ");
+	Model stitch("resources/objects/Stitch/stitch.obj");
+	Model bugs("resources/objects/Bugs/bugs_bunny.obj");
 
 	//ModelAnim animacionPersonaje("resources/objects/Personaje1/PersonajeBrazo.dae");
 	//animacionPersonaje.initShaders(animShader.ID);
@@ -1180,6 +1181,17 @@ int main()
 		stitch.Draw(staticShader);
 
 		// -------------------------------------------------------------------------------------------------------------------------
+		// Bugs
+		// -------------------------------------------------------------------------------------------------------------------------
+		model = glm::mat4(1.0f);
+		//model = glm::translate(model, glm::vec3(-50.0f, 0.0f, -30.0f));
+		model = glm::translate(model, glm::vec3(-40.0f, 0.0f, 80.0f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.08f));
+		staticShader.setMat4("model", model);
+		bugs.Draw(staticShader);
+
+		// -------------------------------------------------------------------------------------------------------------------------
 		// Estudio
 		// -------------------------------------------------------------------------------------------------------------------------
 		model = glm::mat4(1.0f);
@@ -1242,7 +1254,9 @@ int main()
 		// Perrito
 		// -------------------------------------------------------------------------------------------------------------------------
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 2.0f, 83.0f));
+		//model = glm::translate(model, glm::vec3(0.0f, 2.0f, 83.0f));
+		model = glm::translate(model, glm::vec3(-110.0f, 2.0f, 90.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(5.0f));
 		staticShader.setMat4("model", model);
 		perrito.Draw(staticShader);

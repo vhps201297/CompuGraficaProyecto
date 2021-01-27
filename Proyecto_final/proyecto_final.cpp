@@ -6,6 +6,7 @@
 /* --------------------- Granados Gómez Nanci Noelia ---------------------*/
 /* ---------------------   Pólito Seba Víctor Hugo   ---------------------*/
 /*------------------------------------------------------------------------*/
+//#include <glew.h>
 #include <Windows.h>
 #include <glad/glad.h>
 #include <glfw3.h>	//main
@@ -26,17 +27,30 @@
 #include <Skybox.h>
 #include <iostream>
 
+#include "cilindro.h"
+#include "Cono.h"
+
 //#pragma comment(lib, "winmm.lib")
+
+Cilindro cilindro(1.0);
+Cono cono(1.0);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void my_input(GLFWwindow* window, int key, int scancode, int action, int mods);
+void myData(void);
+void display(Shader);
+void getResolution(void);
 void animate(void);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+int SCR_WIDTH = 800;
+int SCR_HEIGHT = 600;
+
+GLFWmonitor *monitors;
+GLuint VBO, VAO, EBO;
+GLuint skyboxVBO, skyboxVAO;
 
 // camera
 Camera camera(glm::vec3(0.0f, 100.0f, 350.0f));
@@ -120,6 +134,15 @@ float	inc_mov_brazo_der = 0.0f,
 		inc_mov_cuerpo_Z = 0.0f,
 		inc_gira_cuerpo = 0.0f;
 
+//Molino
+float	movX = 0.0f,
+		movY = 0.0f,
+		movZ = -5.0f,
+		rotX = 0.0f,
+		scale = 8.0f;
+
+float rot_helice;
+
 #define MAX_FRAMES 10
 int i_max_steps = 60;
 int i_curr_steps = 0;
@@ -140,6 +163,14 @@ FRAME KeyFrame[MAX_FRAMES];
 int FrameIndex = 27;			//introducir datos
 bool play = false;
 int playIndex = 0;
+
+void getResolution()
+{
+	const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+	SCR_WIDTH = mode->width;
+	SCR_HEIGHT = (mode->height) - 80;
+}
 
 void saveFrame(void)
 {
@@ -176,9 +207,74 @@ void interpolation(void)
 	inc_mov_cuerpo_Z = (KeyFrame[playIndex + 1].mov_cuerpo_Z - KeyFrame[playIndex].mov_cuerpo_Z) / i_max_steps;
 }
 
+void myData()
+{
+	GLfloat vertices[] = {
+		//Position				//Color
+		-0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	//V0 - Frontal
+		0.5f, -0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	//V1
+		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	//V5
+		-0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 0.0f,	//V4
+
+		0.5f, -0.5f, -0.5f,		1.0f, 1.0f, 0.0f,	//V2 - Trasera
+		-0.5f, -0.5f, -0.5f,	1.0f, 1.0f, 0.0f,	//V3
+		-0.5f, 0.5f, -0.5f,		1.0f, 1.0f, 0.0f,	//V7
+		0.5f, 0.5f, -0.5f,		1.0f, 1.0f, 0.0f,	//V6
+
+		-0.5f, 0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	//V4 - Izq
+		-0.5f, 0.5f, -0.5f,		0.0f, 0.0f, 1.0f,	//V7
+		-0.5f, -0.5f, -0.5f,	0.0f, 0.0f, 1.0f,	//V3
+		-0.5f, -0.5f, 0.5f,		0.0f, 0.0f, 1.0f,	//V0
+
+		0.5f, 0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	//V5 - Der
+		0.5f, -0.5f, 0.5f,		0.0f, 1.0f, 0.0f,	//V1
+		0.5f, -0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	//V2
+		0.5f, 0.5f, -0.5f,		0.0f, 1.0f, 0.0f,	//V6
+
+		-0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 1.0f,	//V4 - Sup
+		0.5f, 0.5f, 0.5f,		1.0f, 0.0f, 1.0f,	//V5
+		0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 1.0f,	//V6
+		-0.5f, 0.5f, -0.5f,		1.0f, 0.0f, 1.0f,	//V7
+
+		-0.5f, -0.5f, 0.5f,		1.0f, 1.0f, 1.0f,	//V0 - Inf
+		-0.5f, -0.5f, -0.5f,	1.0f, 1.0f, 1.0f,	//V3
+		0.5f, -0.5f, -0.5f,		1.0f, 1.0f, 1.0f,	//V2
+		0.5f, -0.5f, 0.5f,		1.0f, 1.0f, 1.0f,	//V1
+	};
+
+	unsigned int indices[] =	//I am not using index for this session
+	{
+		0
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	//Para trabajar con indices (Element Buffer Object)
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+}
+
+
 void animate(void)
 {
 	mov_fenix = (mov_fenix < 360) ? mov_fenix + 1.0f : 0.0f;
+	rot_helice = (rot_helice < 360) ? rot_helice + 1.0f : 0.0f;
 
 	if (play)
 	{
@@ -526,6 +622,160 @@ void animate(void)
 	}
 }
 
+void display(Shader shader)
+{
+
+	shader.use();
+
+	// create transformations and Projection
+	glm::mat4 temp1 = glm::mat4(1.0f);
+	glm::mat4 model = glm::mat4(1.0f);		// initialize Matrix, Use this matrix for individual models
+	glm::mat4 view = glm::mat4(1.0f);		//Use this matrix for ALL models
+	glm::mat4 projection = glm::mat4(1.0f);	//This matrix is for Projection
+
+	//Use "projection" in order to change how we see the information
+	projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	view = camera.GetViewMatrix();
+	// pass them to the shaders
+	shader.setMat4("model", model);
+	shader.setMat4("view", view);
+	// note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+	shader.setMat4("projection", projection);
+
+
+	glBindVertexArray(VAO);
+
+	model = temp1 = glm::translate(model, glm::vec3(0.0f, -5.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(4.75f, 5.5f, 4.75f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.835f, 0.729f, 0.545f));
+	cilindro.render();	//cilindro
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, 1.25f, 0.0f));
+	model = glm::scale(model, glm::vec3(4.75f, 2.5f, 4.75f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	cono.render();	//cono
+
+	glBindVertexArray(VAO);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, -0.75f, 1.5f));
+	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.45f, 0.435f, 0.431f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, 0.0f, 0.5f));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.5f, 1.0f, 0.5f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	cilindro.render();	//cilindro 2
+
+	glm::mat4 temp2 = glm::mat4(1.0f);
+
+	model = glm::translate(temp1, glm::vec3(0.0f, 0.0f, 1.0f));
+	model = temp2 = glm::rotate(model, glm::radians(rot_helice), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	cono.render();	//cono giro
+
+
+	// Primer élice
+	model = temp1 = glm::translate(temp2, glm::vec3(0.6f, 0.0f, -0.3f));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.25f, 0.5f, 0.25f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+	cilindro.render();	//cilindro 2
+
+	glBindVertexArray(VAO);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(2.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(4.0f, 0.15f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.25f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(3.5f, 1.5f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	// Segunda élice
+	model = temp1 = glm::translate(temp2, glm::vec3(0.0f, 0.6f, -0.3f));
+	//model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.25f, 0.5f, 0.25f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+	cilindro.render();	//cilindro 2
+
+	glBindVertexArray(VAO);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, 2.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.15f, 4.0f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, 0.25f, 0.0f));
+	model = glm::scale(model, glm::vec3(1.5f, 3.5f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	// Tercera élice
+	model = temp1 = glm::translate(temp2, glm::vec3(-0.6f, 0.0f, -0.3f));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.25f, 0.5f, 0.25f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+	cilindro.render();	//cilindro 2
+
+	glBindVertexArray(VAO);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(-2.0f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(4.0f, 0.15f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(-0.25f, 0.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(3.5f, 1.5f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	// Cuarta élice
+	model = temp1 = glm::translate(temp2, glm::vec3(0.0f, -0.6f, -0.3f));
+	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3(0.25f, 0.5f, 0.25f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+	cilindro.render();	//cilindro 2
+
+	glBindVertexArray(VAO);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, -2.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.15f, 4.0f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+	model = temp1 = glm::translate(temp1, glm::vec3(0.0f, -0.25f, 0.0f));
+	model = glm::scale(model, glm::vec3(1.5f, 3.5f, 0.15f));
+	shader.setMat4("model", model);
+	shader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+	glDrawArrays(GL_QUADS, 0, 24);
+
+
+	//glBindVertexArray(0);
+
+}
+
 int main()
 {
 	// glfw: initialize and configure
@@ -541,6 +791,9 @@ int main()
 
 	// glfw window creation
 	// --------------------
+	//monitors = glfwGetPrimaryMonitor();
+	//getResolution();
+
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Proyecto final", NULL, NULL);
 	if (window == NULL)
 	{
@@ -548,12 +801,18 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
+	glfwSetWindowPos(window, 0, 30);
+
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, my_input);
 
+	
+
+
+	//glewInit();
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -567,8 +826,13 @@ int main()
 
 	// configure global opengl state
 	// -----------------------------
+	//Datos a utilizar
+	myData();
+	cilindro.init();
+	cono.init();
 	glEnable(GL_DEPTH_TEST);
 
+	Shader projectionShader("shaders/shader_projection.vs", "shaders/shader_projection.fs");
 	// build and compile shaders
 	// -------------------------
 	//Shader staticShader("Shaders/lightVertex.vs", "Shaders/lightFragment.fs");
@@ -836,7 +1100,8 @@ int main()
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	//PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
-	
+	glm::mat4 projection = glm::mat4(1.0f);	//This matrix is for Projection
+	projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -887,6 +1152,7 @@ int main()
 
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 tmp = glm::mat4(1.0f);
+		glm::mat4 temp1 = glm::mat4(1.0f);
 		// view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 4000.0f);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -904,7 +1170,138 @@ int main()
 		//staticShader.use();
 		staticShader.setMat4("projection", projection);
 		staticShader.setMat4("view", view);
+		// Molino
+		//display(staticShader);
 
+		model = temp1 = glm::translate(glm::mat4(1.0f), glm::vec3(140.0f, 30+5.0f, -130.0f));
+		model = glm::scale(model, glm::vec3(scale*4.75f, scale*5.5f, scale*4.75f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.835f, 0.729f, 0.545f));
+		cilindro.render();	//cilindro
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, 1.25f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*4.75f, scale*2.5f, scale*4.75f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		cono.render();	//cono
+
+		glBindVertexArray(VAO);
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f,-0.75f, 1.5f));
+		model = glm::scale(model, glm::vec3(scale*1.0f, scale*1.0f, scale*1.0f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.45f, 0.435f, 0.431f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, 0.0f, 0.5f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*0.5f, scale*1.0f, scale*0.5f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		cilindro.render();	//cilindro 2
+
+
+		glm::mat4 temp2 = glm::mat4(1.0f);
+
+		model = glm::translate(temp1, scale*glm::vec3(0.0f, 0.0f, 1.0f));
+		model = temp2 = glm::rotate(model, glm::radians(rot_helice), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*0.5f, scale*0.5f, scale*0.5f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		cono.render();	//cono giro
+
+
+		// Primer élice
+		model = temp1 = glm::translate(temp2, scale* glm::vec3(0.6f, 0.0f, -0.3f));
+		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, scale* glm::vec3(0.25f, 0.5f, 0.25f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+		cilindro.render();	//cilindro 2
+
+		glBindVertexArray(VAO);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(2.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*4.0f, scale*0.15f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.25f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*3.5f, scale*1.5f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		// Segunda élice
+		model = temp1 = glm::translate(temp2, scale* glm::vec3(0.0f, 0.6f, -0.3f));
+		//model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(scale*0.25f, scale*0.5f, scale*0.25f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+		cilindro.render();	//cilindro 2
+
+		glBindVertexArray(VAO);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, 2.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*0.15f, scale*4.0f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, 0.25f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*1.5f, scale*3.5f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		// Tercera élice
+		model = temp1 = glm::translate(temp2, scale* glm::vec3(-0.6f, 0.0f, -0.3f));
+		model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(scale*0.25f, scale*0.5f, scale*0.25f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+		cilindro.render();	//cilindro 2
+
+		glBindVertexArray(VAO);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(-2.0f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*4.0f, scale*0.15f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(-0.25f, 0.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*3.5f, scale*1.5f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		// Cuarta élice
+		model = temp1 = glm::translate(temp2, scale* glm::vec3(0.0f, -0.6f, -0.3f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::scale(model, glm::vec3(scale*0.25f, scale*0.5f, scale*0.25f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.47f, 0.329f, 0.227f));
+		cilindro.render();	//cilindro 2
+
+		glBindVertexArray(VAO);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, -2.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(scale*0.15f, scale*4.0f, scale*0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.329f, 0.231f, 0.16f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		model = temp1 = glm::translate(temp1, scale* glm::vec3(0.0f, -0.25f, 0.0f));
+		model = glm::scale(model, scale*glm::vec3(1.5f, 3.5f, 0.15f));
+		staticShader.setMat4("model", model);
+		staticShader.setVec3("aColor", glm::vec3(0.172f, 0.133f, 0.094f));
+		glDrawArrays(GL_QUADS, 0, 24);
+
+		//glBindVertexArray(0);
+
+		// -----------------------Termina molino---------------------
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(3.0f, 0.0f, 53.5f));
 		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));

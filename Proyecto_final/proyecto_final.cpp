@@ -145,7 +145,7 @@ float	movX = 0.0f,
 
 float rot_helice;
 
-#define MAX_FRAMES 10
+#define MAX_FRAMES 27
 int i_max_steps = 60;
 int i_curr_steps = 0;
 
@@ -940,7 +940,7 @@ int main()
 	// draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	//PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
+	PlaySound(TEXT("sound/pajaros.wav"), NULL, SND_LOOP|SND_ASYNC);
 	glm::mat4 projection = glm::mat4(1.0f);	//This matrix is for Projection
 	projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	// render loop

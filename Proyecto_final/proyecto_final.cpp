@@ -1699,11 +1699,15 @@ void my_input(GLFWwindow *window, int key, int scancode, int action, int mode)
 		if (nextStateCamera) {
 			lastPosition = camera.Position;
 			camera.Position = glm::vec3(-10.0f, 400.0f, 0.0f);
+			camera.Pitch = -90.0;
+			camera.Yaw = 270.0;
+			camera.MouseSensitivity = 0.000001;
 			nextStateCamera = false;
 		}
 
 		else {
 			camera.Position = lastPosition;
+			camera.MouseSensitivity = 0.7;
 			nextStateCamera = true;
 		}
 	}
